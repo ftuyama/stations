@@ -6,6 +6,7 @@ require "set"
 require "stringex"
 require "tzinfo"
 require_relative "lib/constants"
+require_relative "tools/country_mesh"
 
 STATIONS = CSV.read("stations.csv", Constants::CSV_PARAMETERS)
 STATIONS_BY_ID = STATIONS.each_with_object({}) do |station, hash|
@@ -172,6 +173,7 @@ class StationsTest < Minitest::Test
   end
 
   def test_country_coordinates
+    country_mesh = CountryMesh.new
     geocoder = OfflineGeocoder.new
     mismatches = []
 
@@ -184,12 +186,16 @@ class StationsTest < Minitest::Test
       country = geocoder.search(lat, lon)[:cc]
 
       if row["country"] != country
-        mismatches << "Station #{row["name"]} (#{row["id"]}) should be in #{country} instead of #{row["country"]}"
+        mesh_country = country_mesh.get_country(lat.to_f, lon.to_f)
+
+        if row["country"] != mesh_country
+          mismatches << "Station #{row["name"]} (#{row["id"]}) should be in #{country} instead of #{row["country"]}"
+        end
       end
     end
 
-    puts mismatches if !mismatches.empty?
-    assert mismatches.empty?
+    puts mismatches unless mismatches.empty?
+    assert_equal 0, mismatches.length
   end
 
   def test_sorted_by_id
