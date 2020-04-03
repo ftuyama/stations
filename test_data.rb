@@ -1,6 +1,7 @@
 require "csv"
 require "minitest/autorun"
 require "minitest/focus"
+require "offline_geocoder"
 require "set"
 require "stringex"
 require "tzinfo"
@@ -168,6 +169,27 @@ class StationsTest < Minitest::Test
         assert_operator lat, :<, 69,  "Station #{row["name"]} (#{row["id"]}) has coordinates outside the bounding box"
       end
     end
+  end
+
+  def test_country_coordinates
+    geocoder = OfflineGeocoder.new
+    mismatches = []
+
+    STATIONS.each do |row|
+      lat = row["latitude"]
+      lon = row["longitude"]
+
+      next if lon.nil? || lat.nil?
+
+      country = geocoder.search(lat, lon)[:cc]
+
+      if row["country"] != country
+        mismatches << "Station #{row["name"]} (#{row["id"]}) should be in #{country} instead of #{row["country"]}"
+      end
+    end
+
+    puts mismatches if !mismatches.empty?
+    assert mismatches.empty?
   end
 
   def test_sorted_by_id
