@@ -1,4 +1,5 @@
 require "csv"
+require "geocoder"
 require "minitest/autorun"
 require "minitest/focus"
 require "offline_geocoder"
@@ -189,7 +190,11 @@ class StationsTest < Minitest::Test
         mesh_country = country_mesh.get_country(lat.to_f, lon.to_f)
 
         if row["country"] != mesh_country
-          mismatches << "Station #{row["name"]} (#{row["id"]}) should be in #{country} instead of #{row["country"]}"
+          results = Geocoder.search([lat.to_f, lon.to_f])
+
+          unless results && results.first.data["address"]["country_code"].upcase == row["country"]
+            mismatches << "Station #{row["name"]} (#{row["id"]}) should be in #{country} instead of #{row["country"]}"
+          end
         end
       end
     end
