@@ -192,12 +192,12 @@ class StationsTest < Minitest::Test
       mesh_country = country_mesh.get_country(lat.to_f, lon.to_f)
       next if row["country"] == mesh_country
 
-      results = Geocoder.search([lat.to_f, lon.to_f])
-      next if results && results.first.data["address"]["country_code"].upcase == row["country"]
-
       results = Geocoder.search(row["name"]) || []
       countries = results.map { |result| result.data["address"]["country_code"].upcase if result }.compact
       next if countries.include? row["country"]
+
+      results = Geocoder.search([lat.to_f, lon.to_f])
+      next if results && results.first.data["address"]["country_code"].upcase == row["country"]
 
       mismatches << "Station #{row["name"]} (#{row["id"]}) should be in #{country} instead of #{row["country"]}"
     end
