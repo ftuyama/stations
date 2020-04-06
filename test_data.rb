@@ -198,9 +198,6 @@ class StationsTest < Minitest::Test
       countries = results.map { |result| result.data['address']['country_code'].upcase if result }.compact
       next if countries.include? row['country']
 
-      results = Geocoder.search([lat.to_f, lon.to_f])
-      next if results && results.first.data['address']['country_code'].upcase == row['country']
-
       mismatches << "Station #{row['name']} (#{row['id']}) should be in #{country} instead of #{row['country']}"
     end
 
