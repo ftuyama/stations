@@ -179,27 +179,29 @@ class StationsTest < Minitest::Test
     mismatches = []
 
     STATIONS.each do |row|
-      next if row["sncf_id"] && row["country"] == row["sncf_id"][0..1]
-      next if row["distribusion_id"] && row["country"] == row["distribusion_id"][0..1]
+      next if row['distribusion_id']&.start_with?(row['country'])
+      next if row['sncf_id']&.start_with?(row['country'])
+      next if row['benerail_id']&.start_with?(row['country'])
+      next if row['ouigo_id']&.start_with?(row['country'])
 
-      lat = row["latitude"]
-      lon = row["longitude"]
+      lat = row['latitude']
+      lon = row['longitude']
       next if lon.nil? || lat.nil?
 
       country = geocoder.search(lat, lon)[:cc]
-      next if row["country"] == country
+      next if row['country'] == country
 
       mesh_country = country_mesh.get_country(lat.to_f, lon.to_f)
-      next if row["country"] == mesh_country
+      next if row['country'] == mesh_country
 
-      results = Geocoder.search(row["name"]) || []
-      countries = results.map { |result| result.data["address"]["country_code"].upcase if result }.compact
-      next if countries.include? row["country"]
+      results = Geocoder.search(row['name']) || []
+      countries = results.map { |result| result.data['address']['country_code'].upcase if result }.compact
+      next if countries.include? row['country']
 
       results = Geocoder.search([lat.to_f, lon.to_f])
-      next if results && results.first.data["address"]["country_code"].upcase == row["country"]
+      next if results && results.first.data['address']['country_code'].upcase == row['country']
 
-      mismatches << "Station #{row["name"]} (#{row["id"]}) should be in #{country} instead of #{row["country"]}"
+      mismatches << "Station #{row['name']} (#{row['id']}) should be in #{country} instead of #{row['country']}"
     end
 
     puts mismatches unless mismatches.empty?

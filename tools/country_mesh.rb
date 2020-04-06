@@ -7,9 +7,14 @@ class CountryMesh
 
     @countries = {}
     data["features"].each do |feature|
-      geom = feature["geometry"]
+      coordinates = feature["geometry"]["coordinates"]
       country = feature["properties"]["ISO_A2"]
-      @countries[country] = geom["coordinates"]
+      land = coordinates[0][0][0]
+
+      # Only consider countries around Europe/North Africa/Asia
+      if land[0] > -25 && land[0] < 135 && land[1] > 20 && land[1] < 72
+        @countries[country] = coordinates
+      end
     end
   end
 
