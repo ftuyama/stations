@@ -1,13 +1,11 @@
 require "csv"
-require "geocoder"
 require "minitest/autorun"
 require "minitest/focus"
-require "offline_geocoder"
 require "set"
 require "stringex"
 require "tzinfo"
 require_relative "lib/constants"
-require_relative "tools/country_mesh"
+require_relative "lib/geocoder_service"
 
 STATIONS = CSV.read("stations.csv", Constants::CSV_PARAMETERS)
 STATIONS_BY_ID = STATIONS.each_with_object({}) do |station, hash|
@@ -174,8 +172,7 @@ class StationsTest < Minitest::Test
   end
 
   def test_country_coordinates
-    country_mesh = CountryMesh.new
-    geocoder = OfflineGeocoder.new
+    geocoder = GeocoderService.new
     mismatches = []
 
     STATIONS.each do |row|
@@ -183,24 +180,18 @@ class StationsTest < Minitest::Test
       next if row['sncf_id']&.start_with?(row['country'])
       next if row['benerail_id']&.start_with?(row['country'])
       next if row['ouigo_id']&.start_with?(row['country'])
+      next if row['latitude'].nil? || row['longitude'].nil?
 
-      lat = row['latitude']
-      lon = row['longitude']
-      next if lon.nil? || lat.nil?
-
-      country = geocoder.search(lat, lon)[:cc]
+      country = geocoder.offline_geocoder(row['latitude'], row['longitude'])
       next if row['country'] == country
 
-      mesh_country = country_mesh.get_country(lat.to_f, lon.to_f)
-      next if row['country'] == mesh_country
-
-      results = Geocoder.search(row['name']) || []
-      countries = results.map { |result| result.data['address']['country_code'].upcase if result }.compact
+      countries = geocoder.online_geocoder(row['name'])
       next if countries.include? row['country']
 
       mismatches << "Station #{row['name']} (#{row['id']}) should be in #{country} instead of #{row['country']}"
     end
 
+    geocoder.save_api_cache
     puts mismatches unless mismatches.empty?
     assert_equal 0, mismatches.length
   end
