@@ -3,18 +3,27 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  tests:
-    name: Tests
+  # tests:
+  #   name: Tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - uses: actions/setup-ruby@v1
+  #     with:
+  #       ruby-version: 2.6
+  #   - name: Install dependencies
+  #     run: |
+  #       gem install bundler
+  #       bundle install
+  #   - name: Run tests
+  #     run: |
+  #       bundle exec ruby test_data.rb
+
+  stations-human-diff:
+    if: ${{ github.event_name == 'pull_request' }}
+    name: Stations Human Diff
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-ruby@v1
-      with:
-        ruby-version: 2.6
-    - name: Install dependencies
-      run: |
-        gem install bundler
-        bundle install
-    - name: Run tests
-      run: |
-        bundle exec ruby test_data.rb
+    - uses: ftuyama/stations-human-diff@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
