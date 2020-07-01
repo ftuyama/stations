@@ -9,7 +9,7 @@ jobs:
   stations_diff:
     runs-on: ubuntu-latest
     steps:
-      - uses: trainline-eu/stations-human-diff@master
+      - uses: ftuyama/stations-human-diff@master
         env:
           STATIONS_GITHUB_APP_ID: ${{ secrets.STATIONS_GITHUB_APP_ID }}
           STATIONS_GITHUB_APP_NAME: ${{ secrets.STATIONS_GITHUB_APP_NAME }}
